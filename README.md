@@ -31,7 +31,7 @@ Here are three methods to install SSMSExecutor, in order of convenience:
 
 -	Copy the files manually.
 
-Note that the installer and ZIP files already include the SSMSExecutor addon, you you don’t need to download them separately.
+Note that the installer and ZIP files already include the SSMSExecutor addon, so you don’t need to download them separately.
 
 ##	SSMSExecutor Installer Application
 
@@ -75,6 +75,8 @@ When the addon has been isntalled, you will see this message:
 You can then <kbd>OK</kbd> and <kbd>Quit</kbd>.
 
 ##	SSMSExecutor Installer Batch Script
+
+If, for some reason, you can’t use the above installer, you can try the Batch Script method.
 
 Download the SSMSInstaller Batch File zip file: ( [https://github.com/manngo/ssms-executor-installer/releases/latest](https://github.com/manngo/ssms-executor-installer/releases/latest) | ssms-executor-installer-bat.zip ).
 
