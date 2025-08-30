@@ -4,7 +4,9 @@ Installers & Instructions for installing SSMS Executor
 
 ##	Background
 
-Microsoft’s SQL Server Management Studio (SSMS) does a good job, but it lacks one tremendously useful feature: the ability to run a single statement at a time. (Sure, you can highlight the statement and run the selection, but who wants to do that multiple times?)
+Microsoft’s SQL Server Management Studio (SSMS) does a good job, but it lacks one tremendously useful feature: the ability to run a single statement at a time. (Sure, you can highlight the statement and run the selection, but who wants to do that multiple times?[^1])
+
+[^1]: That’s a rhetorical question — we’re not actually looking for volunteers.
 
 SSMS Executor ( [https://github.com/devvcat/ssms-executor](https://github.com/devvcat/ssms-executor) ) is a free addon which can be used to add this feature to SSMS.
 
@@ -28,6 +30,8 @@ Here are three methods to install SSMSExecutor, in order of convenience:
 	If you can’t run the batch script, try this:
 
 -	Copy the files manually.
+
+Note that the installer and ZIP files already include the SSMSExecutor addon, you you don’t need to download them separately.
 
 ##	SSMSExecutor Installer Application
 
