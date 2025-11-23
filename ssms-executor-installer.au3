@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Res_Comment=See https://github.com/devvcat/ssms-executor/ https://github.com/tkwj/ssms-executor
 
 #AutoIt3Wrapper_Res_Description=Installer for SSMS Executor
-#AutoIt3Wrapper_Res_Fileversion=0.1.0.10
+#AutoIt3Wrapper_Res_Fileversion=0.1.0.14
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_LegalCopyright=© Mark Simon
 #AutoIt3Wrapper_Res_Language=3081
@@ -53,6 +53,7 @@ EndFunc
 	$destinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions\'
 	$destinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions\'
 	$destinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\'
+	$destinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\'
 
 	Local $ini = "install.ini"
 
@@ -268,7 +269,7 @@ EndFunc
 
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
-				Case 'C: SSMS 21'
+				Case 'C: SSMS 21', 'C: SSMS 22'
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\extension.vsixmanifest", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.pkgdef", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
