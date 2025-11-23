@@ -5,6 +5,7 @@ echo	================================================
 
 :menu
 
+echo	21	SSMS 22
 echo	21	SSMS 21
 echo.
 echo	20	SSMS 20
@@ -18,7 +19,9 @@ echo.
 set choice=
 set /p choice=Choose a Version: 
 
+if '%choice%'=='22' goto ssms22
 if '%choice%'=='21' goto ssms21
+
 if '%choice%'=='20' goto ssms20
 if '%choice%'=='19' goto ssms19
 if '%choice%'=='18' goto ssms18
@@ -31,6 +34,10 @@ echo.
 goto exit
 
 rem	Choices
+
+:ssms22
+	robocopy "%~dp0\SSMSExecutorNew" "C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\SSMSExecutor" /e
+	goto exit
 
 :ssms21
 	robocopy "%~dp0\SSMSExecutorNew" "C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\SSMSExecutor" /e

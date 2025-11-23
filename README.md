@@ -12,10 +12,12 @@ SSMS Executor ( [https://github.com/devvcat/ssms-executor](https://github.com/de
 
 Sadly, this addon hasn’t been updated for some time:
 
--	The original installer doesn’t work with newer versions of SSMS
--	The original addon no longer works with the SSMS version 21.
+-	The original installer doesn’t work with newer versions of SSMS.
+-	The original addon no longer works with the SSMS version 21 or later.
 
 An updated version of SSMS is available from [https://github.com/tkwj/ssms-executor](https://github.com/tkwj/ssms-executor) .
+
+> For now, the above version doest’t work with SSMS 22. However, the installer here _does_ work.
 
 When it comes to an updated installer, here it is.
 
@@ -109,13 +111,14 @@ First, follow the instructions above to download and unzip the `ssms-executor-in
 
 Inside the folder you’ll see two folders:
 
--	`SSMSExecutorNew` for SSMS 21
+-	`SSMSExecutorNew` for SSMS 21 and 22
 -	`SSMSExecutorOld` for SSMS 17, 18, 19 and 20
 
 Copy the appropariate folder to one of these locations:
 
 | Version | Folder          | Location                                                                                   |
 |---------|-----------------|--------------------------------------------------------------------------------------------|
+| SSMS 22 | SSMSExecutorNew | C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\ |
 | SSMS 21 | SSMSExecutorNew | C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\ |
 | SSMS 20 | SSMSExecutorOld | C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions\   |
 | SSMS 19 | SSMSExecutorOld | C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions\   |
