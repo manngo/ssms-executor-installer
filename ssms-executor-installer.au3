@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Res_Comment=See https://github.com/devvcat/ssms-executor/ https://github.com/tkwj/ssms-executor
 
 #AutoIt3Wrapper_Res_Description=Installer for SSMS Executor
-#AutoIt3Wrapper_Res_Fileversion=0.1.0.14
+#AutoIt3Wrapper_Res_Fileversion=0.1.0.15
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_LegalCopyright=© Mark Simon
 #AutoIt3Wrapper_Res_Language=3081
@@ -152,17 +152,20 @@ EndFunc
 		GUICtrlCreateLabel("Installs SSMS Executor", 0, 0)
 		GUISetFont (9, $FW_NORMAL)
 
-		GUICtrlCreateLabel("For information about SSMS Executor:", 0, $lineHeight*1.5)
+		$GitHubLabel = GUICtrlCreateLabel("Home Page", 0, $lineHeight*1.25)
+		GUICtrlSetColor($GitHubLabel, $COLOR_BLUE)
+		GUICtrlSetFont($GitHubLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
+		GUICtrlSetOnEvent($GitHubLabel, "runLabel")
 
-		$ssmsOldLabel = GUICtrlCreateLabel("Original SSMS Executor ", $padding, $lineHeight*1.5)
+		GUICtrlCreateLabel("For information about SSMS Executor:", 0, $lineHeight*1.25)
+
+		$ssmsOldLabel = GUICtrlCreateLabel("Original SSMS Executor", $padding, $lineHeight*1.125)
 		GUICtrlSetColor($ssmsOldLabel, $COLOR_BLUE)
-		;	GUICtrlSetBkColor($ssmsOldLabel, $COLOR_WHITE)
 		GUICtrlSetFont($ssmsOldLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
 		GUICtrlSetOnEvent($ssmsOldLabel, "runLabel")
 
 		$ssmsNewLabel = GUICtrlCreateLabel("SSMS Executor (v21)", 0, $lineHeight)
 		GUICtrlSetColor($ssmsNewLabel, $COLOR_BLUE)
-		;	GUICtrlSetBkColor($ssmsNewLabel, $COLOR_WHITE)
 		GUICtrlSetFont($ssmsNewLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
 		GUICtrlSetOnEvent($ssmsNewLabel, "runLabel")
 
@@ -232,6 +235,9 @@ EndFunc
 				ShellExecute("https://github.com/devvcat/ssms-executor/")
 			Case @GUI_CtrlId = $ssmsNewLabel
 				ShellExecute("https://github.com/tkwj/ssms-executor/")
+			Case @GUI_CtrlId = $GitHubLabel
+				ShellExecute("https://github.com/manngo/ssms-executor")
+
 		EndSelect
 	EndFunc
 
