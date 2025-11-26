@@ -17,7 +17,7 @@ Sadly, this addon hasn’t been updated for some time:
 
 An updated version of SSMS is available from [https://github.com/tkwj/ssms-executor](https://github.com/tkwj/ssms-executor) .
 
-> For now, the above version doest’t work with SSMS 22. However, the installer here _does_ work.
+> For now, the above version doesn’t work with SSMS 22. However, the installer here _does_ work.
 
 When it comes to an updated installer, here it is.
 
