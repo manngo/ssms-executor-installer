@@ -17,7 +17,7 @@ echo	Anything else to exit
 echo.
 
 set choice=
-set /p choice=Choose a Version: 
+set /p choice=Choose a Version:
 
 if '%choice%'=='22' goto ssms22
 if '%choice%'=='21' goto ssms21
@@ -37,10 +37,12 @@ rem	Choices
 
 :ssms22
 	robocopy "%~dp0\SSMSExecutorNew" "C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\SSMSExecutor" /e
+	echo. > "C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\extensions.configurationchanged"
 	goto exit
 
 :ssms21
 	robocopy "%~dp0\SSMSExecutorNew" "C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\SSMSExecutor" /e
+	echo. > "C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\extensions.configurationchanged"
 	goto exit
 
 :ssms20

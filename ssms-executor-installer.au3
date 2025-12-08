@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Res_Comment=See https://github.com/devvcat/ssms-executor/ https://github.com/tkwj/ssms-executor
 
 #AutoIt3Wrapper_Res_Description=Installer for SSMS Executor
-#AutoIt3Wrapper_Res_Fileversion=0.1.0.15
+#AutoIt3Wrapper_Res_Fileversion=0.1.0.17
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_LegalCopyright=© Mark Simon
 #AutoIt3Wrapper_Res_Language=3081
@@ -26,6 +26,7 @@
 #include <Array.au3>
 ;#include <WinAPI.au3>
 
+
 Opt('GUIOnEventMode', 1)					;	use events instead of loop
 AutoitSetOption('ExpandVarStrings',1)		;	enable ' … $var$ … '
 
@@ -33,7 +34,10 @@ Func dbug($data)
 	ConsoleWrite($data & @CRLF)
 EndFunc
 Func say($message, $title="Message")
-	MsgBox($MB_SYSTEMMODAL, $title, $message)
+	MsgBox($MB_SYSTEMMODAL+$MB_OK, $title, $message)
+EndFunc
+Func ask($message, $title="Message")
+	Return MsgBox($MB_SYSTEMMODAL+$MB_YESNO, $title, $message) == $IDYES
 EndFunc
 
 ;	Config
@@ -44,16 +48,15 @@ EndFunc
 	Global Const $CRLF = @CRLF
 
 	Global Const $guiWidth = 300
-	Global Const $guiHeight = 144 + $lineHeight*8
 
 	Global $destinations[]
 
-	$destinations['C: SSMS 17'] = 'C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\Extensions\'
-	$destinations['C: SSMS 18'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Extensions\'
-	$destinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions\'
-	$destinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions\'
-	$destinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions\'
-	$destinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions\'
+	$destinations['C: SSMS 17'] = 'C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\Extensions'
+	$destinations['C: SSMS 18'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Extensions'
+	$destinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions'
+	$destinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions'
+	$destinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions'
+	$destinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions'
 
 	Local $ini = "install.ini"
 
@@ -61,12 +64,14 @@ EndFunc
 		Local $values = IniReadSection($ini, 'Install')
 		If Not @error Then
 			For $j = 1 to $values[0][0]
-				$key = $values[$j][0];
+				$key = $values[$j][0]
 				$value = $values[$j][1]
 				$destinations[$key] = $value
 			Next
 		EndIf
 	EndIf
+
+	Global Const $guiHeight = 144 + $lineHeight*(UBound($destinations)+1)
 
 ;	Globals
 	Global $gui
@@ -85,7 +90,6 @@ EndFunc
 ;	_WinAPI_SetThemeAppProperties(0)
 ;	_WinAPI_SetThemeAppProperties($STAP_ALLOW_NONCLIENT)
 ;	_SendMessage($gui, $WM_THEMECHANGED)
-
 
 	GUISetBkColor($COLOR_WHITE)
 
@@ -119,7 +123,8 @@ EndFunc
 		GUISetFont (9, $FW_NORMAL)
 
 	;	Tab Control
-		Local $tabControl = GUICtrlCreateTab(10, $padding + 20, $guiWidth - $padding, 196)
+
+		Local $tabControl = GUICtrlCreateTab(10, $padding + 20, $guiWidth - $padding, $guiHeight - 132)
 
 	;	SSMS Tabs
 		$tabs['ssms'] = GUICtrlCreateTabItem("SSMS Versions")
@@ -152,7 +157,7 @@ EndFunc
 		GUICtrlCreateLabel("Installs SSMS Executor", 0, 0)
 		GUISetFont (9, $FW_NORMAL)
 
-		$GitHubLabel = GUICtrlCreateLabel("Home Page", 0, $lineHeight*1.25)
+		$GitHubLabel = GUICtrlCreateLabel("Home Page (GitHub)", 0, $lineHeight*1.25)
 		GUICtrlSetColor($GitHubLabel, $COLOR_BLUE)
 		GUICtrlSetFont($GitHubLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
 		GUICtrlSetOnEvent($GitHubLabel, "runLabel")
@@ -181,6 +186,8 @@ EndFunc
 		GUISetFont (9, $FW_NORMAL)
 		Local $cancelButton = GUICtrlCreateButton("Cancel", $padding, $guiHeight-$lineHeight*3, $buttonWidth)
 		GUICtrlSetOnEvent($cancelButton, "cancelButton")
+		Local $uninstallButton = GUICtrlCreateButton("Uninistall",  $guiWidth-$buttonWidth*2-$padding*2, $guiHeight-$lineHeight*3, $buttonWidth+16)
+		GUICtrlSetOnEvent($uninstallButton, "uninstallButton")
 		Local $okButton = GUICtrlCreateButton("OK",  $guiWidth-$buttonWidth-$padding, $guiHeight-$lineHeight*3, $buttonWidth)
 		GUICtrlSetOnEvent($okButton, "okButton")
 
@@ -217,10 +224,18 @@ EndFunc
 	GUIDelete($gui)
 
 ;	Action Buttons
+	Func uninstallButton()
+		For $i In MapKeys($checkBixen)
+			Local $cb = $checkBixen[$i]
+			If GUICtrlRead($i) = $GUI_CHECKED Then undoit($cb, $i)
+		Next
+	EndFunc
+
+
 	Func okButton()
 		For $i In MapKeys($checkBixen)
 			Local $cb = $checkBixen[$i]
-			If GUICtrlRead($i) = $GUI_CHECKED Then doit($cb)
+			If GUICtrlRead($i) = $GUI_CHECKED Then doit($cb, $i)
 		Next
 	EndFunc
 
@@ -241,8 +256,32 @@ EndFunc
 		EndSelect
 	EndFunc
 
+;	Uninstall
+	Func undoit($cb, $ctrl)
+		Local $destination = $cb['destination']
+		Local $key = $cb['key']
+
+		If Not ask("Remove SSMS Executor for $key$ ?") Then Return
+
+		DirRemove("$destination$\SSMSExecutor", $DIR_REMOVE)
+
+		Switch $key
+			Case 'C: SSMS 17', 'C: SSMS 18', 'C: SSMS 19', 'C: SSMS 20'
+			Case 'C: SSMS 21', 'C: SSMS 22'
+				FileSetTime("$destination$\extensions.configurationchanged", "")
+		EndSwitch
+
+		If FileExists('$destination$\SSMSExecutor') Then
+			GUICtrlSetFont($ctrl, 9, $FW_BOLD)
+		Else
+			GUICtrlSetFont($ctrl, 9, $FW_NORMAL)
+		EndIf
+
+		GUICtrlSetData($cancelButton, 'Quit')
+	EndFunc
+
 ;	Do It
-	Func doit($cb)
+	Func doit($cb, $ctrl)
 		Local $destination = $cb['destination']
 		Local $key = $cb['key']
 
@@ -275,17 +314,31 @@ EndFunc
 
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+
 				Case 'C: SSMS 21', 'C: SSMS 22'
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\extension.vsixmanifest", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.pkgdef", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
 
+					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\catalog.json", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\manifest.json", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.pdb", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+
+					if $ok Then dbug(FileSetTime("$destination$\extensions.configurationchanged", ""))
 			EndSwitch
 		EndIf
 
-		say($ok ? "Install to $destination$ $crlf$ $crlf$Successful" : "Install to $destination$ $crlf$ $crlf$Failed", "Install $key$")
+	;	say($ok ? "Install to $destination$ $crlf$ $crlf$Successful" : "Install to $destination$ $crlf$ $crlf$Failed", "Install $key$")
+		If Not $ok Then say("Install to $destination$ $crlf$ $crlf$Failed", "Install $key$")
+		If FileExists('$destination$\SSMSExecutor') Then
+			GUICtrlSetFont($ctrl, 9, $FW_BOLD)
+		Else
+			GUICtrlSetFont($ctrl, 9, $FW_NORMAL)
+		EndIf
 		if $ok then GUICtrlSetData($cancelButton, 'Quit')
 	EndFunc
 

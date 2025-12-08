@@ -17,8 +17,6 @@ Sadly, this addon hasn’t been updated for some time:
 
 An updated version of SSMS is available from [https://github.com/tkwj/ssms-executor](https://github.com/tkwj/ssms-executor) .
 
-> For now, the above version doest’t work with SSMS 22. However, the installer here _does_ work.
-
 When it comes to an updated installer, here it is.
 
 Here are three methods to install SSMSExecutor, in order of convenience:
@@ -65,14 +63,12 @@ You’ll then see a choice of SSMS versions:
 <img src="images/install-ssms-executor.png" alt="SSMS Versions" width="25%">
 <img src="images/install-ssms-executor-ok.png" alt="SSMS Versions OK" width="25%">
 
--	Any version of SSMS _not_ installed in your system will appear _with_ a question mark.
--	Any version of SSMS with SSMSExecutor already installed in your system will appear in __bold__.
+-	Any version of SSMS _not_ installed in your system will appear with a question mark.
+-	Any version of SSMS with SSMSExecutor _already_ installed in your system will appear in __bold__.
 
 Select any version(s) to install and click <kbd>OK</kbd>.
 
-When the addon has been isntalled, you will see this message:
-
-<img src="images/install-ssms-executor-successful.png" alt="SSMS Versions Successful" width="25%">
+When the addon has been successfully, you’ll see the version in bold. If not, you’ll get a message.
 
 You can then <kbd>OK</kbd> and <kbd>Quit</kbd>.
 
@@ -84,7 +80,7 @@ Download the SSMSInstaller Batch File zip file: ( [https://github.com/manngo/ssm
 
 _Before_ you unzip the file:
 
--	right-click on the installed application and select <kbd>Properties</kbd> …
+-	Right-click on the installed application and select <kbd>Properties</kbd> …
 
 	<img src="images/ssms-executor-installer-bat-properties.png" alt="SSMSExecutorInstaller Properties" width="25%">
 
@@ -92,8 +88,8 @@ _Before_ you unzip the file:
 
 To extract the contents of the zip file, either:
 
--	double-click on the zip file and drag the contents to some convenient location.
--	right-click on the folder and extract all.
+-	Double-click on the zip file and drag the contents to some convenient location.
+-	Right-click on the folder and extract all.
 
 <img src="images/ssms-executor-installer-bat-unzipped.png" alt="SSMSExecutorInstaller Properties" width="50%">
 
