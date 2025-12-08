@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Res_Comment=See https://github.com/devvcat/ssms-executor/ https://github.com/tkwj/ssms-executor
 
 #AutoIt3Wrapper_Res_Description=Installer for SSMS Executor
-#AutoIt3Wrapper_Res_Fileversion=0.1.0.17
+#AutoIt3Wrapper_Res_Fileversion=0.1.0.18
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_LegalCopyright=© Mark Simon
 #AutoIt3Wrapper_Res_Language=3081
@@ -268,7 +268,9 @@ EndFunc
 		Switch $key
 			Case 'C: SSMS 17', 'C: SSMS 18', 'C: SSMS 19', 'C: SSMS 20'
 			Case 'C: SSMS 21', 'C: SSMS 22'
-				FileSetTime("$destination$\extensions.configurationchanged", "")
+				$fh = FileOpen("$destination$\extensions.configurationchanged", $FO_OVERWRITE)
+				FileClose($fh)
+			;	FileSetTime("$destination$\extensions.configurationchanged", "")
 		EndSwitch
 
 		If FileExists('$destination$\SSMSExecutor') Then
@@ -328,7 +330,12 @@ EndFunc
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 
-					if $ok Then dbug(FileSetTime("$destination$\extensions.configurationchanged", ""))
+					if $ok Then
+					;	dbug(FileSetTime("$destination$\extensions.configurationchanged", ""))
+						$fh = FileOpen("$destination$\extensions.configurationchanged", $FO_OVERWRITE)
+						FileClose($fh)
+					EndIf
+
 			EndSwitch
 		EndIf
 
