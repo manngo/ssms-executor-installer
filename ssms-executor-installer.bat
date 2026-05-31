@@ -5,7 +5,7 @@ echo	================================================
 
 :menu
 
-echo	21	SSMS 22
+echo	22	SSMS 22
 echo	21	SSMS 21
 echo.
 echo	20	SSMS 20

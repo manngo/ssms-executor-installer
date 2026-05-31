@@ -4,7 +4,7 @@
 #AutoIt3Wrapper_Res_Comment=See https://github.com/devvcat/ssms-executor/ https://github.com/tkwj/ssms-executor
 
 #AutoIt3Wrapper_Res_Description=Installer for SSMS Executor
-#AutoIt3Wrapper_Res_Fileversion=0.1.0.18
+#AutoIt3Wrapper_Res_Fileversion=0.1.0.56
 #AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
 #AutoIt3Wrapper_Res_LegalCopyright=© Mark Simon
 #AutoIt3Wrapper_Res_Language=3081
@@ -18,24 +18,44 @@
 ;#AutoIt3Wrapper_Compression=4
 #include <AutoItConstants.au3>
 #include <MsgBoxConstants.au3>
+#include <GUIConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <ColorConstants.au3>
 #include <FileConstants.au3>
 #include <FontConstants.au3>
 #include <WindowsConstants.au3>
 #include <Array.au3>
+#include <StaticConstants.au3>
+#include <WinAPIEx.au3>
 ;#include <WinAPI.au3>
+
+
 
 
 Opt('GUIOnEventMode', 1)					;	use events instead of loop
 AutoitSetOption('ExpandVarStrings',1)		;	enable ' … $var$ … '
 
-Func dbug($data)
-	ConsoleWrite($data & @CRLF)
+Func dbug($data=Default, $lineNumber=@ScriptLineNumber)
+	If $data=Default Then $data=''
+	If $lineNumber and $lineNumber>0 Then
+		$lineNumber = '$lineNumber$: '
+	Else
+		$lineNumber = ''
+	EndIf
+	ConsoleWrite('$lineNumber$$data$@CRLF@')
 EndFunc
-Func say($message, $title="Message")
-	MsgBox($MB_SYSTEMMODAL+$MB_OK, $title, $message)
+
+Func say($message=Default, $title=Default, $lineNumber=@ScriptLineNumber)
+	If $message=Default Then $message=''
+	If $title=Default Then $title=''
+	If $lineNumber and $lineNumber>0 Then
+		$lineNumber = '$lineNumber$: '
+	Else
+		$lineNumber = ''
+	EndIf
+	MsgBox($MB_SYSTEMMODAL, $title, '$lineNumber$$message$')
 EndFunc
+
 Func ask($message, $title="Message")
 	Return MsgBox($MB_SYSTEMMODAL+$MB_YESNO, $title, $message) == $IDYES
 EndFunc
@@ -46,54 +66,64 @@ EndFunc
 	Global Const $padding = 20
 	Global Const $lineHeight = 24
 	Global Const $CRLF = @CRLF
+	Global Const $guiWidth = 360
 
-	Global Const $guiWidth = 300
+	Global $extDestinations[]
+	$extDestinations['C: SSMS 17'] = 'C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\Extensions'
+	$extDestinations['C: SSMS 18'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Extensions'
+	$extDestinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions'
+	$extDestinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions'
+	$extDestinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions'
+	$extDestinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions'
 
-	Global $destinations[]
+	Global $sqlDestinations[]
+	$sqlDestinations['C: SSMS 17'] = 'C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\SqlWorkbenchProjectItems\Sql\'
+	$sqlDestinations['C: SSMS 18'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\SqlWorkbenchProjectItems\Sql\'
+	$sqlDestinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\SqlWorkbenchProjectItems\Sql\'
+	$sqlDestinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\SqlWorkbenchProjectItems\Sql\'
+	$sqlDestinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\SqlWorkbenchProjectItems\Sql\'
+	$sqlDestinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\SqlWorkbenchProjectItems\Sql\'
 
-	$destinations['C: SSMS 17'] = 'C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\Extensions'
-	$destinations['C: SSMS 18'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Extensions'
-	$destinations['C: SSMS 19'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Extensions'
-	$destinations['C: SSMS 20'] = 'C:\Program Files (x86)\Microsoft SQL Server Management Studio 20\Common7\IDE\Extensions'
-	$destinations['C: SSMS 21'] = 'C:\Program Files\Microsoft SQL Server Management Studio 21\Release\Common7\IDE\Extensions'
-	$destinations['C: SSMS 22'] = 'C:\Program Files\Microsoft SQL Server Management Studio 22\Release\Common7\IDE\Extensions'
 
-	Local $ini = "install.ini"
+	;	Possible ini file
+		Local $ini = "install.ini"
 
-	If FileExists($ini) Then
-		Local $values = IniReadSection($ini, 'Install')
-		If Not @error Then
-			For $j = 1 to $values[0][0]
-				$key = $values[$j][0]
-				$value = $values[$j][1]
-				$destinations[$key] = $value
-			Next
+		If FileExists($ini) Then
+			Local $values = IniReadSection($ini, 'Install')
+			If Not @error Then
+				For $j = 1 to $values[0][0]
+					$key = $values[$j][0]
+					$value = $values[$j][1]
+					$extDestinations[$key] = $value
+				Next
+			EndIf
 		EndIf
-	EndIf
-
-	Global Const $guiHeight = 144 + $lineHeight*(UBound($destinations)+1)
 
 ;	Globals
+	Global Const $tabHeight = $lineHeight*(UBound($extDestinations)+1.5)
+	Global Const $guiHeight = $tabHeight + 160
 	Global $gui
 	Global $checkBixen[]
+	Global $sqlFile = ''
 
 ;	Create GUI
-	$gui = GUICreate("Install SSMS Executor", $guiWidth)
+	$gui = GUICreate("Install SSMS Executor", $guiWidth, -1, -1, -1, -1, $WS_EX_ACCEPTFILES)
 	WinSetTitle($gui, '', 'Install SSMS Executor');
-
-;	#include <APIThemeConstants.au3>
-;	#include <GUIConstantsEx.au3>
-
-;	#include <WinApiTheme.au3>
-;	#include <SendMessage.au3>
-
-;	_WinAPI_SetThemeAppProperties(0)
-;	_WinAPI_SetThemeAppProperties($STAP_ALLOW_NONCLIENT)
-;	_SendMessage($gui, $WM_THEMECHANGED)
-
 	GUISetBkColor($COLOR_WHITE)
 
-	;	Adjust WIndow
+;	Alow Drag & Drop for Admin
+;	#include <WinAPIEx.au3>
+;	see: 	https://www.autoitscript.com/forum/topic/211358-gui_event_dropped-not-working-only-when-script-is-compiled/
+;			https://www.autoitscript.com/forum/topic/202196-elevated-drag-drop/
+
+	If IsAdmin() Then
+		_WinAPI_ChangeWindowMessageFilterEx($gui, $WM_COPYGLOBALDATA, $MSGFLT_ALLOW)
+		_WinAPI_ChangeWindowMessageFilterEx($gui, $WM_DROPFILES, $MSGFLT_ALLOW)
+		_WinAPI_ChangeWindowMessageFilterEx($gui, $WM_NCHITTEST, $MSGFLT_ALLOW)
+		_WinAPI_ChangeWindowMessageFilterEx ($gui, $WM_COPYDATA, $MSGFLT_ALLOW) ; useless ?
+	EndIf
+
+	;	Adjust Window
 		Local $guiPos = WinGetPos($gui)
 		Local $x = $guiPos[0]
 		Local $y = $guiPos[1]
@@ -123,8 +153,9 @@ EndFunc
 		GUISetFont (9, $FW_NORMAL)
 
 	;	Tab Control
+	;	GUICtrlCreateTab (left, top[, width[, height[, style = -1[, exStyle = -1]]]] )
 
-		Local $tabControl = GUICtrlCreateTab(10, $padding + 20, $guiWidth - $padding, $guiHeight - 132)
+		Local $tabControl = GUICtrlCreateTab(10, $padding + 20, $guiWidth - $padding, $tabHeight)
 
 	;	SSMS Tabs
 		$tabs['ssms'] = GUICtrlCreateTabItem("SSMS Versions")
@@ -133,18 +164,57 @@ EndFunc
 
 	;	Create Items
 		GUISetFont (9, $FW_NORMAL)
-		For $key In MapKeys($destinations)
-			$destination = $destinations[$key]
-			$checkbox = GUICtrlCreateCheckbox(FileExists($destination) = 1 ? '$key$' : '$key$ ?', 0, $lineheight, $guiWidth - 2*$padding)
-			If FileExists('$destination$\SSMSExecutor') Then GUICtrlSetFont($checkbox, 9, $FW_BOLD)
-			If Not FileExists($destination) Then GUICtrlSetColor($checkbox, $COLOR_RED)
+		For $key In MapKeys($extDestinations)
+			$extDestination = $extDestinations[$key]
+			$sqlDestination = $sqlDestinations[$key]
+
+			$checkbox = GUICtrlCreateCheckbox(FileExists($extDestination) = 1 ? '$key$' : '$key$ ?', 0, $lineheight, $guiWidth - 2*$padding)
+			If FileExists('$extDestination$\SSMSExecutor') Then GUICtrlSetFont($checkbox, 9, $FW_BOLD)
+
 			Local $cb[]
 			$cb['key'] = $key
-			$cb['destination'] = $destination
+			$cb['ext-destination'] = $extDestination
+			$cb['sql-destination'] = $sqlDestination
 			$checkbixen[$checkbox] = $cb
 
 			$item += 1
 		Next
+
+		GUISetFont (9, $FW_NORMAL)
+
+		AutoItSetOption('GUICoordMode', Default)
+	;	SQLFile Button
+;		GUICtrlCreateGraphic($padding, $guiHeight-$lineHeight*2, $guiWidth - 2*$padding, 1, $SS_BLACKRECT)
+
+		$dropControl = GUICtrlCreateInput('', $padding, $tabHeight+$lineheight*2, $guiWidth-$buttonWidth*2, $lineheight, -1, $WS_EX_STATICEDGE)
+		GUICtrlSetState ($dropControl, $GUI_DROPACCEPTED)
+		GUICtrlSetTip ($dropControl, 'Drag File here …')
+		GUICtrlSetFont($dropControl, 10, $FW_NORMAL, $GUI_FONTNORMAL, 'Courier New')
+		GUISetOnEvent($GUI_EVENT_DROPPED, 'doDrop')
+	;	GUIRegisterMsg($WM_DROPFILES, 'doDrop')
+
+		Func doDrop()
+		;	say(@GUI_CtrlId)
+		;	say(@GUI_DropId)
+		;	say($dropControl)
+		;	say(@GUI_DragFile)
+		;	say(GUICtrlRead(@GUI_DropId))
+			$sqlFile = @GUI_DragFile
+		EndFunc
+
+		Local $sqlButton = GUICtrlCreateButton("SQLFile",   $guiWidth-$buttonWidth-$padding, $tabHeight+$lineheight*2, $buttonWidth)
+		GUICtrlSetOnEvent($sqlButton, "sqlButton")
+
+	;	Cancel Button
+		Local $cancelButton = GUICtrlCreateButton("Cancel", $padding, $tabHeight+$lineheight*3.5, $buttonWidth)
+		GUICtrlSetOnEvent($cancelButton, "cancelButton")
+	;	Install & Uninstall Buttons
+		Local $uninstallButton = GUICtrlCreateButton("Uninistall",  $guiWidth-$buttonWidth*2.5-$padding, $tabHeight+$lineheight*3.5, $buttonWidth+16)
+		GUICtrlSetOnEvent($uninstallButton, "uninstallButton")
+		Local $installButton = GUICtrlCreateButton("Install",  $guiWidth-$buttonWidth-$padding, $tabHeight+$lineheight*3.5, $buttonWidth)
+		GUICtrlSetOnEvent($installButton, "installButton")
+
+
 		AutoItSetOption('GUICoordMode', Default)
 
 	;	About
@@ -169,27 +239,14 @@ EndFunc
 		GUICtrlSetFont($ssmsOldLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
 		GUICtrlSetOnEvent($ssmsOldLabel, "runLabel")
 
-		$ssmsNewLabel = GUICtrlCreateLabel("SSMS Executor (v21)", 0, $lineHeight)
+		$ssmsNewLabel = GUICtrlCreateLabel("SSMS Executor", 0, $lineHeight)
 		GUICtrlSetColor($ssmsNewLabel, $COLOR_BLUE)
 		GUICtrlSetFont($ssmsNewLabel, 9, $FW_NORMAL, $GUI_FONTUNDER)
 		GUICtrlSetOnEvent($ssmsNewLabel, "runLabel")
 
-;		$ssmsLink = GUICtrlCreateLabel("SSMS Executor…", $padding+52 , 12, $guiWidth - 2*$padding)
-;		GUICtrlSetOnEvent($ssmsLink, "runLabel")
-;		GUICtrlSetColor($ssmsLink, $COLOR_BLUE)
-
-
-		AutoItSetOption('GUICoordMode', Default)
 		GUICtrlCreateTabItem('');
 
-	;	OK & Cancel Buttons
-		GUISetFont (9, $FW_NORMAL)
-		Local $cancelButton = GUICtrlCreateButton("Cancel", $padding, $guiHeight-$lineHeight*3, $buttonWidth)
-		GUICtrlSetOnEvent($cancelButton, "cancelButton")
-		Local $uninstallButton = GUICtrlCreateButton("Uninistall",  $guiWidth-$buttonWidth*2-$padding*2, $guiHeight-$lineHeight*3, $buttonWidth+16)
-		GUICtrlSetOnEvent($uninstallButton, "uninstallButton")
-		Local $okButton = GUICtrlCreateButton("OK",  $guiWidth-$buttonWidth-$padding, $guiHeight-$lineHeight*3, $buttonWidth)
-		GUICtrlSetOnEvent($okButton, "okButton")
+
 
 	GUISetState(@SW_SHOW, $gui)
 
@@ -224,18 +281,26 @@ EndFunc
 	GUIDelete($gui)
 
 ;	Action Buttons
-	Func uninstallButton()
+	Func sqlButton()
 		For $i In MapKeys($checkBixen)
 			Local $cb = $checkBixen[$i]
-			If GUICtrlRead($i) = $GUI_CHECKED Then undoit($cb, $i)
+			If GUICtrlRead($i) = $GUI_CHECKED Then doSQLFile($cb, $i)
 		Next
 	EndFunc
 
 
-	Func okButton()
+	Func uninstallButton()
 		For $i In MapKeys($checkBixen)
 			Local $cb = $checkBixen[$i]
-			If GUICtrlRead($i) = $GUI_CHECKED Then doit($cb, $i)
+			If GUICtrlRead($i) = $GUI_CHECKED Then doUninstall($cb, $i)
+		Next
+	EndFunc
+
+
+	Func installButton()
+		For $i In MapKeys($checkBixen)
+			Local $cb = $checkBixen[$i]
+			If GUICtrlRead($i) = $GUI_CHECKED Then doInstall($cb, $i)
 		Next
 	EndFunc
 
@@ -256,24 +321,43 @@ EndFunc
 		EndSelect
 	EndFunc
 
+;	SQLFile
+	Func doSQLFile($cb, $ctrl)
+		Local $sqlDestination = $cb['sql-destination']
+		Local $key = $cb['key']
+
+		Local $ok = true
+		If $ok Then
+			If FileExists($sqlFile) Then
+				$ok = $ok and FileCopy ($sqlFile, "$sqlDestination$\SQLFile.sql", $FC_OVERWRITE)
+				say($ok ? "Copy $sqlFile$ $crlf$ to $sqlDestination$SQLFile.sql $crlf$ $crlf$Successful" : "Copy SQLFile to $sqlDestination$ $crlf$ $crlf$Failed", "Install $key$")
+			Else
+				$ok = $ok and FileInstall(".\SQLFile.sql", "$sqlDestination$\SQLFile.sql", $FC_OVERWRITE)
+				say($ok ? "Copy default SQLFile.sql $crlf$ to $sqlDestination$SQLFile.sql $crlf$ $crlf$Successful" : "Copy SQLFile to $sqlDestination$ $crlf$ $crlf$Failed", "Install $key$")
+			EndIf
+		EndIf
+
+		GUICtrlSetData($cancelButton, 'Quit')
+	EndFunc
+
 ;	Uninstall
-	Func undoit($cb, $ctrl)
-		Local $destination = $cb['destination']
+	Func doUninstall($cb, $ctrl)
+		Local $extDestination = $cb['ext-destination']
 		Local $key = $cb['key']
 
 		If Not ask("Remove SSMS Executor for $key$ ?") Then Return
 
-		DirRemove("$destination$\SSMSExecutor", $DIR_REMOVE)
+		DirRemove("$extDestination$\SSMSExecutor", $DIR_REMOVE)
 
 		Switch $key
 			Case 'C: SSMS 17', 'C: SSMS 18', 'C: SSMS 19', 'C: SSMS 20'
 			Case 'C: SSMS 21', 'C: SSMS 22'
-				$fh = FileOpen("$destination$\extensions.configurationchanged", $FO_OVERWRITE)
+				$fh = FileOpen("$extDestination$\extensions.configurationchanged", $FO_OVERWRITE)
 				FileClose($fh)
-			;	FileSetTime("$destination$\extensions.configurationchanged", "")
+			;	FileSetTime("$extDestination$\extensions.configurationchanged", "")
 		EndSwitch
 
-		If FileExists('$destination$\SSMSExecutor') Then
+		If FileExists('$extDestination$\SSMSExecutor') Then
 			GUICtrlSetFont($ctrl, 9, $FW_BOLD)
 		Else
 			GUICtrlSetFont($ctrl, 9, $FW_NORMAL)
@@ -283,24 +367,25 @@ EndFunc
 	EndFunc
 
 ;	Do It
-	Func doit($cb, $ctrl)
-		Local $destination = $cb['destination']
+	Func doInstall($cb, $ctrl)
+		Local $extDestination = $cb['ext-destination']
+		Local $sqlDestination = $cb['sql-destination']
 		Local $key = $cb['key']
 
 		Local $ok = true
 
-		If FileExists("$destination$\SSMSExecutor\") Then
-			dbug("$destination$\SSMSExecutor exists")
+		If FileExists("$extDestination$\SSMSExecutor\") Then
+			dbug("$extDestination$\SSMSExecutor exists")
 		Else
-			$ok = DirCreate("$destination$\SSMSExecutor")
+			$ok = DirCreate("$extDestination$\SSMSExecutor")
 			dbug("DirCreate: $ok$")
 		EndIf
 
 		If $ok Then
-			If FileExists("$destination$\SSMSExecutor\Resources") Then
-				ConsoleWrite("$destination$\SSMSExecutor\Resources exists")
+			If FileExists("$extDestination$\SSMSExecutor\Resources") Then
+				ConsoleWrite("$extDestination$\SSMSExecutor\Resources exists")
 			Else
-				$ok = DirCreate("$destination$\SSMSExecutor\Resources")
+				$ok = DirCreate("$extDestination$\SSMSExecutor\Resources")
 				ConsoleWrite("DirCreate: $ok$")
 			EndIf
 		EndIf
@@ -308,40 +393,39 @@ EndFunc
 		If $ok Then
 			Switch $key
 				Case 'C: SSMS 17', 'C: SSMS 18', 'C: SSMS 19', 'C: SSMS 20'
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\SSMSExecutor.dll.config", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\SSMSExecutor.pkgdef", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\extension.vsixmanifest", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Microsoft.SqlServer.TransactSql.ScriptDom.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\SSMSExecutor.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\SSMSExecutor.dll.config", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\SSMSExecutor.pkgdef", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\extension.vsixmanifest", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\Microsoft.SqlServer.TransactSql.ScriptDom.dll", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\SSMSExecutor.dll", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
 
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorOld\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\Resources\license.txt", "$extDestination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorOld\Resources\Command1Package.ico", "$extDestination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 
 				Case 'C: SSMS 21', 'C: SSMS 22'
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\extension.vsixmanifest", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\SSMSExecutor.pkgdef", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\extension.vsixmanifest", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\SSMSExecutor.dll", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\SSMSExecutor.pkgdef", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
 
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\catalog.json", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\manifest.json", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.dll", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.pdb", "$destination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\catalog.json", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\manifest.json", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.dll", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\Microsoft.SqlServer.TransactSql.ScriptDom.pdb", "$extDestination$\SSMSExecutor\", $FC_OVERWRITE)
 
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\license.txt", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
-					$ok = $ok and FileInstall("S:\ssms-executor-installer\SSMSExecutorNew\Resources\Command1Package.ico", "$destination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\Resources\license.txt", "$extDestination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
+					$ok = $ok and FileInstall(".\SSMSExecutorNew\Resources\Command1Package.ico", "$extDestination$\SSMSExecutor\Resources\", $FC_OVERWRITE)
 
 					if $ok Then
-					;	dbug(FileSetTime("$destination$\extensions.configurationchanged", ""))
-						$fh = FileOpen("$destination$\extensions.configurationchanged", $FO_OVERWRITE)
+					;	dbug(FileSetTime("$extDestination$\extensions.configurationchanged", ""))
+						$fh = FileOpen("$extDestination$\extensions.configurationchanged", $FO_OVERWRITE)
 						FileClose($fh)
 					EndIf
-
 			EndSwitch
 		EndIf
 
-	;	say($ok ? "Install to $destination$ $crlf$ $crlf$Successful" : "Install to $destination$ $crlf$ $crlf$Failed", "Install $key$")
-		If Not $ok Then say("Install to $destination$ $crlf$ $crlf$Failed", "Install $key$")
-		If FileExists('$destination$\SSMSExecutor') Then
+		say($ok ? "Install to $extDestination$ $crlf$ $crlf$Successful" : "Install to $extDestination$ $crlf$ $crlf$Failed", "Install $key$")
+	;	If Not $ok Then say("Install to $extDestination$ $crlf$ $crlf$Failed", "Install $key$")
+		If FileExists('$extDestination$\SSMSExecutor') Then
 			GUICtrlSetFont($ctrl, 9, $FW_BOLD)
 		Else
 			GUICtrlSetFont($ctrl, 9, $FW_NORMAL)

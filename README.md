@@ -122,3 +122,20 @@ Copy the appropariate folder to one of these locations:
 | SSMS 17 | SSMSExecutorOld | C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\Extensions\    |
 
 You can rename the folder to `SSMSExecutor`.
+
+##	SQLFile Installer
+
+The latest version include an option to install a personalised `SQLFile.sql` file. What’s that? you may ask.
+
+You can define what amounts to a template file for new SQL documents. This is a file called `SQLFile.sql`, which is installed inside a special folder. This template file can contain any text you want your new documents to contain.
+
+You’ll then see a choice of SSMS versions:
+
+<img src="images/sql-file-installer.png" alt="SSMS Versions" width="25%">
+<img src="images/sql-file-installer-populated.png" alt="SSMS Versions OK" width="25%">
+
+You install the `SQLFile.sql` document by pressing the <kbd>SQLFile</kbd> button. If the file box is empty, you install a default empty document set to UTF-8, which is a good choice for modern times.
+
+Alternatively, you can include your own template by dragging it on the file box, such as the sample template which starts with a comment block.
+
+There is a batch file, `sqlfile-install.bat` which will do a similar job.
